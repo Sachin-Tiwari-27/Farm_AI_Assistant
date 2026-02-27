@@ -1,0 +1,39 @@
+[Unit]
+Description=Farm AI Assistant — Admin Dashboard (Streamlit)
+# Start AFTER the bot to ensure DB is initialized first
+After=network.target farmbot.service
+# Wants means "try to start farmbot first" but don't fail if it's absent
+Wants=farmbot.service
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/Farm_AI_Assistant
+
+# Bind to localhost only — dashboard is NOT exposed to the internet
+# Access via SSH tunnel: ssh -L 8501:localhost:8501 ubuntu@<your-ip>
+ExecStart=/home/ubuntu/Farm_AI_Assistant/venv/bin/streamlit run dashboard/app.py \
+    --server.port 8501 \
+    --server.address 127.0.0.1 \
+    --server.headless true \
+    --server.fileWatcherType none
+
+Restart=always
+RestartSec=15
+
+# ── Isolation: prevent dashboard issues from affecting the bot ──────────────
+# Raise the OOM score so the kernel kills the dashboard FIRST under memory
+# pressure (farmbot.service has default OOM score 0, which is lower priority)
+OOMScoreAdjust=300
+
+# Run at slightly lower CPU priority than the bot (bot uses default nice=0)
+Nice=5
+
+# Separate temp directory — dashboard crashes won't leave stale locks visible
+# to the bot process
+PrivateTmp=true
+
+# ── Environment ─────────────────────────────────────────────────────────────
+Environment=PYTHONPATH=/home/ubuntu/Farm_AI_Assistant/src
+
+[Install]
+WantedBy=multi-user.target
