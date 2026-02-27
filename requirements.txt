@@ -10,3 +10,7 @@ faster-whisper==1.2.1
 # Generative AI & Image Processing
 google-genai>=1.63.0
 pillow>=12.1.1
+
+# Admin Dashboard
+streamlit>=1.43.0
+pandas>=2.0.0

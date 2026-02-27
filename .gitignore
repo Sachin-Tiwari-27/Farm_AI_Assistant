@@ -10,5 +10,9 @@ data
 # Environment
 .env
 
+<<<<<<< HEAD
 # Agent
 .agent/
+=======
+.agent/
+>>>>>>> 865997158a370074be22c017d6ab93319afc6e59
