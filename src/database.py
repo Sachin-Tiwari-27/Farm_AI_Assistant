@@ -499,5 +499,49 @@ def get_entries_for_date(user_id, date_str):
     conn.close()
     return result
 
+# --- ADMIN FUNCTIONS ---
+def get_all_users_summary() -> list:
+    """Returns a list of dicts with id, name, farm, and landmark count for every registered user."""
+    conn = get_db()
+    try:
+        users = conn.execute("SELECT id, name, farm FROM users ORDER BY name").fetchall()
+        result = []
+        for u in users:
+            lm_count = conn.execute(
+                "SELECT COUNT(*) FROM landmarks WHERE user_id=?", (u['id'],)
+            ).fetchone()[0]
+            result.append({
+                "id": u['id'],
+                "name": u['name'],
+                "farm": u['farm'],
+                "landmark_count": lm_count
+            })
+        return result
+    except Exception as e:
+        logger.error(f"get_all_users_summary failed: {e}")
+        return []
+    finally:
+        conn.close()
+
+def delete_user_and_landmarks(user_id: int) -> bool:
+    """
+    Hard-deletes a user and their landmark registrations from the DB.
+    Logs (and media/ai_interactions referencing those logs) are intentionally preserved.
+    Returns True on success, False on failure.
+    """
+    conn = get_db()
+    try:
+        conn.execute("DELETE FROM landmarks WHERE user_id=?", (user_id,))
+        conn.execute("DELETE FROM users WHERE id=?", (user_id,))
+        conn.commit()
+        logger.info(f"Admin: deleted user {user_id} and their landmarks.")
+        trigger_sync()
+        return True
+    except Exception as e:
+        logger.error(f"delete_user_and_landmarks({user_id}) failed: {e}")
+        return False
+    finally:
+        conn.close()
+
 # Initialize
 init_db()
