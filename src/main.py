@@ -21,6 +21,7 @@ from handlers.adhoc import adhoc_handler
 from handlers.dashboard import dashboard_handler
 from handlers.history import history_handler
 from handlers.ai_chat import ai_handler, ai_feedback_handler
+from handlers.admin import admin_handler
 
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -145,6 +146,7 @@ if __name__ == '__main__':
     app.add_handler(CommandHandler('alert', cmd_alert))
 
     # 3. PRIORITY 2: Feature Handlers (SPECIFIC regex matchers)
+    app.add_handler(admin_handler)      # Admin-only panel — must be first
     app.add_handler(dashboard_handler) 
     app.add_handler(onboarding_handler)
     app.add_handler(collection_handler)
